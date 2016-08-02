@@ -1,6 +1,19 @@
 require_relative './board_game'
+require 'active_record'
 require 'pry'
+
 class App
+
+  def initialize
+    ActiveRecord::Base.establish_connection(
+      :adapter  => "postgresql",
+      # :host     => "localhost",
+      # :username => "myuser",
+      # :password => "mypass",
+      :database => "board_games"
+    )
+    ActiveRecord::Base.logger = Logger.new(STDOUT)
+  end
 
   # REPL for managing board games
   def run
@@ -10,14 +23,18 @@ class App
       case input
       when '1'
         # Find all
-        games = BoardGame.findAll
+        games = BoardGame.all
         puts games
       when '2'
         # Find by id
         puts "ID of boardgame?"
         id = gets.strip
-        game = BoardGame.findById(id)
-        puts game.details
+        game = BoardGame.find(id)
+        if game
+          puts game.details
+        else
+          puts "Not found"
+        end
       when '3'
         # Add
         game = BoardGame.new
@@ -30,26 +47,32 @@ class App
         puts "Description?"
         game.description = input
 
-        game.insert
-        puts game
+        if game.save
+          puts game
+        else
+          puts game.errors.messages
+        end
+
       when '4'
         # Edit
         puts "ID of boardgame?"
         id = gets.strip
-        game = BoardGame.findById(id)
+        game = BoardGame.find(id)
         puts "Which field do you want to edit [name, description, min_players, max_players]?"
         field = input
         puts "New Value?"
         value = input
-        game.send("#{field}=", value)
 
-        game.update
-        puts game.details
+        begin
+          game.update!(field => value)
+        rescue ActiveRecord::RecordInvalid => ex
+          puts game.errors.messages
+        end
       when '5'
         # Delete
         puts "ID of boardgame?"
         id = gets.strip
-        game = BoardGame.findById(id)
+        game = BoardGame.find(id)
         game.destroy # DELETE from DB
       when '6'
         # Search
