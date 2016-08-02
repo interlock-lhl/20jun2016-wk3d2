@@ -1,5 +1,5 @@
 require_relative './board_game'
-
+require 'pry'
 class App
 
   # REPL for managing board games
@@ -10,16 +10,53 @@ class App
       case input
       when '1'
         # Find all
+        games = BoardGame.findAll
+        puts games
       when '2'
         # Find by id
+        puts "ID of boardgame?"
+        id = gets.strip
+        game = BoardGame.findById(id)
+        puts game.details
       when '3'
         # Add
+        game = BoardGame.new
+        puts "Name of the Game?"
+        game.name = input
+        puts "Min Players?"
+        game.min_players = input
+        puts "Max Players?"
+        game.max_players = input
+        puts "Description?"
+        game.description = input
+
+        game.insert
+        puts game
       when '4'
         # Edit
+        puts "ID of boardgame?"
+        id = gets.strip
+        game = BoardGame.findById(id)
+        puts "Which field do you want to edit [name, description, min_players, max_players]?"
+        field = input
+        puts "New Value?"
+        value = input
+        game.send("#{field}=", value)
+
+        game.update
+        puts game.details
       when '5'
         # Delete
+        puts "ID of boardgame?"
+        id = gets.strip
+        game = BoardGame.findById(id)
+        game.destroy # DELETE from DB
       when '6'
         # Search
+        puts "Search term?"
+        term = input
+        games = BoardGame.search(term)
+        puts games
       when '0'
         # Exit
         break
@@ -51,7 +88,7 @@ class App
         puts "invalid input"
       end
     end
-    return v
+    v
   end
 end
 
